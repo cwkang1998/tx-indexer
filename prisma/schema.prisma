@@ -5,7 +5,48 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator erd {
+  provider = "prisma-erd-generator"
+}
+
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model TransactionType {
+  id   Int    @id @db.SmallInt
+  name String @unique @db.VarChar(50)
+
+  Transaction Transaction[]
+}
+
+// model Address {
+//   id          Int     @id
+//   address     String  @unique @db.VarChar(100)
+// }
+
+model Receipt {
+  hash    String @id @db.VarChar(100)
+  payload String @db.Text
+
+  transactions Transaction[]
+}
+
+model Transaction {
+  id          BigInt @id
+  txHash      String @unique @db.VarChar(100)
+  blockNumber BigInt
+  txId        BigInt
+  from        String @db.VarChar(100)
+  to          String @db.VarChar(100)
+
+  txTypeId Int
+  txType   TransactionType @relation(fields: [txTypeId], references: [id])
+
+  receipts Receipt[]
+
+  @@unique([blockNumber, txId])
+  @@index([txHash])
 }
