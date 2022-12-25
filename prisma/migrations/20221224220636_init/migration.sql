@@ -40,7 +40,7 @@ CREATE UNIQUE INDEX "TransactionType_name_key" ON "TransactionType"("name");
 CREATE UNIQUE INDEX "Transaction_txHash_key" ON "Transaction"("txHash");
 
 -- CreateIndex
-CREATE INDEX "Transaction_txHash_idx" ON "Transaction"("txHash");
+CREATE INDEX "Transaction_txHash_idx" ON "Transaction"("txHash" DESC);
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Transaction_blockNumber_txId_key" ON "Transaction"("blockNumber", "txId");

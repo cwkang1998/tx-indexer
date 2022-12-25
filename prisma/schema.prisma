@@ -9,7 +9,6 @@ generator erd {
   provider = "prisma-erd-generator"
 }
 
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -21,11 +20,6 @@ model TransactionType {
 
   Transaction Transaction[]
 }
-
-// model Address {
-//   id          Int     @id
-//   address     String  @unique @db.VarChar(100)
-// }
 
 model Receipt {
   hash    String @id @db.VarChar(100)
@@ -48,5 +42,5 @@ model Transaction {
   receipts Receipt[]
 
   @@unique([blockNumber, txId])
-  @@index([txHash])
+  @@index([txHash(sort: Desc)])
 }
