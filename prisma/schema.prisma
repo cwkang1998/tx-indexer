@@ -29,7 +29,7 @@ model Receipt {
 }
 
 model Transaction {
-  id          BigInt @id
+  id          BigInt @id @default(autoincrement())
   txHash      String @unique @db.VarChar(100)
   blockNumber BigInt
   txId        BigInt
