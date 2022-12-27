@@ -5,7 +5,7 @@ import { TxType, validateHex, validateTxTypeEnum } from "../types";
 const DEFAULT_PAGE_SIZE = 25;
 
 export const TransactionRequestSchema = z.object({
-  page: z.number().positive().default(1),
+  page: z.coerce.number().positive().default(1),
   txType: validateTxTypeEnum().optional(),
   txHash: validateHex().optional(),
 });

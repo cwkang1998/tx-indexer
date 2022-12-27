@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node src/index.ts",
+    "db:seed": "ts-node src/scripts/seed.ts",
     "test": "jest"
   },
   "keywords": [],

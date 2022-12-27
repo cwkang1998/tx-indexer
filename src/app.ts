@@ -8,6 +8,7 @@ import { createTransaction, TransactionAddSchema } from "./services/create-txn";
 
 export const startApp = (prismaClient: PrismaClient) => {
   const app = express();
+  app.use(express.json());
 
   app.get("/transaction", async (req, res) => {
     const queryParams = await TransactionRequestSchema.safeParseAsync(

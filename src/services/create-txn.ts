@@ -1,21 +1,14 @@
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
-import {
-  TxType,
-  TxTypeString,
-  validateHex,
-  validateTxTypeEnum,
-} from "../types";
-
-const DEFAULT_PAGE_SIZE = 25;
+import { TxType, validateHex, validateTxTypeEnum } from "../types";
 
 export const TransactionAddSchema = z
   .object({
-    blockNumber: z.number().positive(),
+    blockNumber: z.number().nonnegative(),
     from: validateHex(),
     to: validateHex(),
     txHash: validateHex(),
-    txId: z.number().positive(),
+    txId: z.number().nonnegative(),
     receipts: z
       .array(
         z.object({
