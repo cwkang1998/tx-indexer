@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 startApp(prisma)
   .listen(3000, () => {
-    console.log("Application started.");
+    console.log(`Application started at ${3000}`);
   })
   .on("close", async () => {
     await prisma.$disconnect();
