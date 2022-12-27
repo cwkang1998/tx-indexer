@@ -44,7 +44,7 @@ export const getAllTransaction = async (
 
   return {
     currentPage: params.page,
-    lastPage: txQueryRes[0] || 1, // Set minimum to 1, if count is 0
+    lastPage: Math.floor(txQueryRes[0] / DEFAULT_PAGE_SIZE) || 1, // Set minimum to 1, if count is 0
     txns: txQueryRes[1],
   };
 };
