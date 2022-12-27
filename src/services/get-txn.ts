@@ -38,7 +38,7 @@ export const getAllTransaction = async (
         id: "desc",
       },
       take: DEFAULT_PAGE_SIZE,
-      skip: params.page * DEFAULT_PAGE_SIZE,
+      skip: (params.page - 1) * DEFAULT_PAGE_SIZE,
     }),
   ]);
 

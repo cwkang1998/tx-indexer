@@ -5,6 +5,7 @@ import {
   TransactionRequestSchema,
 } from "./services/get-txn";
 import { createTransaction, TransactionAddSchema } from "./services/create-txn";
+import { compatJsonStringify } from "./utils";
 
 export const startApp = (prismaClient: PrismaClient) => {
   const app = express();
@@ -17,7 +18,10 @@ export const startApp = (prismaClient: PrismaClient) => {
 
     if (queryParams.success) {
       const txns = await getAllTransaction(prismaClient, queryParams.data);
-      return res.status(200).json(txns);
+      return res
+        .status(200)
+        .contentType("json")
+        .send(compatJsonStringify(txns));
     }
 
     return res.status(400).json({ error: queryParams.error });
@@ -28,7 +32,10 @@ export const startApp = (prismaClient: PrismaClient) => {
 
     if (reqBody.success) {
       const txInsert = await createTransaction(prismaClient, reqBody.data);
-      return res.status(201).json(txInsert);
+      return res
+        .status(201)
+        .contentType("json")
+        .send(compatJsonStringify(txInsert));
     }
 
     return res.status(400).json({ error: reqBody.error });
