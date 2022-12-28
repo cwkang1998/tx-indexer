@@ -7,6 +7,10 @@ import {
 } from "./services/get-txn";
 import { createTransaction, TransactionAddSchema } from "./services/create-txn";
 import { compatJsonStringify } from "./utils";
+import {
+  getOneTransaction,
+  TransactionRequestOneSchema,
+} from "./services/get-one-txn";
 
 export const startApp = (prismaClient: PrismaClient) => {
   const app = express();
@@ -50,6 +54,29 @@ export const startApp = (prismaClient: PrismaClient) => {
     }
 
     return res.status(400).json({ error: reqBody.error });
+  });
+
+  app.get("/transaction/:txHash", async (req, res) => {
+    const queryParams = await TransactionRequestOneSchema.safeParseAsync(
+      req.params
+    );
+
+    if (queryParams.success) {
+      try {
+        const singleTxn = await getOneTransaction(
+          prismaClient,
+          queryParams.data
+        );
+        return res
+          .status(200)
+          .contentType("json")
+          .send(compatJsonStringify(singleTxn));
+      } catch (err: any) {
+        return res.status(400).json({ error: err.message });
+      }
+    }
+
+    return res.status(400).json({ error: queryParams.error });
   });
 
   return app;

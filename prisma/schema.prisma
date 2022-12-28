@@ -42,5 +42,5 @@ model Transaction {
   receipts Receipt[]
 
   @@unique([blockNumber, txId])
-  @@index([txHash(sort: Desc)])
+  @@index([txHash])
 }
