@@ -119,3 +119,5 @@ SELECT "public"."Transaction"."id", "public"."Transaction"."txHash", "public"."T
 ```
 
 ### Writes
+
+The tests here are done mainly using single inserts, and can potentially be faster in a situation where bulk insert are used.

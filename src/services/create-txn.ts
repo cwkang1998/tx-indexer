@@ -114,7 +114,16 @@ export const createTransaction = async (
         to: params.to,
         txHash: params.txHash,
         txId: params.txId,
-        receipts: { create: params.receipts ?? [] },
+        receipts: {
+          connectOrCreate: (params.receipts ?? []).map((val) => ({
+            create: {
+              ...val,
+            },
+            where: {
+              hash: val.hash,
+            },
+          })),
+        },
         txTypeId:
           params.txType === "INVOKE" ? TxType.INVOKE : TxType.L1_HANDLER,
       },
