@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Receipt } from "@prisma/client";
 
 const prisma = new PrismaClient({
   log: [
@@ -21,13 +21,6 @@ const prisma = new PrismaClient({
     },
   ],
 });
-
-// Logging for db
-// prisma.$on("query", (e) => {
-//   console.log("Query: " + e.query);
-//   console.log("Params: " + e.params);
-//   console.log("Duration: " + e.duration + "ms");
-// });
 
 const generateFakeTxns = (blockNo: number, txAmount: number) => {
   const result = Array(txAmount)
@@ -52,7 +45,7 @@ const generateFakeTxns = (blockNo: number, txAmount: number) => {
           : [];
 
       const txn: any = {
-        receipts: { create: receipts },
+        receipts,
         txTypeId: chosenTxType === "INVOKE" ? 0 : 1,
         txHash: faker.datatype.hexadecimal({ prefix: "0x", length: 64 }),
         blockNumber: blockNo,
@@ -66,34 +59,48 @@ const generateFakeTxns = (blockNo: number, txAmount: number) => {
   return result;
 };
 
-// --- Perm test cases ---
+const writeToDbTestBulk = async () => {
+  console.time("bulk insert");
+  const txToInsert = Array(10)
+    .fill(0)
+    .flatMap((_val, idx) => generateFakeTxns(idx, 100));
+  const processedTxn = txToInsert.map((val) => {
+    return {
+      txTypeId: val.txTypeId,
+      txHash: val.txHash,
+      blockNumber: val.blockNumber,
+      txId: val.txId,
+      from: val.from,
+      to: val.to,
+    };
+  });
 
-/**
- * Run bulk insert using the schema for roughly
- * 10k * 100 transaction -> 1m transaction
- * Also includes the receipts field INVOKE type.
- *
- * Avg per 100 txn insert time taken: 2-4sec
- */
-const writePermTestBulkInsert = async () => {
-  console.time("bulk insert full");
-  for (let i = 0; i < 100; i++) {
-    const txToInsert = generateFakeTxns(i, 100);
-    console.time("bulk insert case");
+  const transactionInserts = await prisma.transaction.createMany({
+    data: processedTxn,
+  });
 
-    const result = await prisma.$transaction(async (ctx) => {
-      const insertion = txToInsert.map((txn) => {
-        return ctx.transaction.create({
-          data: txn,
-          include: { receipts: true },
-        });
-      });
-      return await Promise.all(insertion);
-    });
+  const processedTxnReceipt = txToInsert.flatMap((val) => {
+    return val.receipts?.map((innerReceipt: Receipt) => ({
+      ...innerReceipt,
+      transactions: {
+        connect: {
+          txHash: val.txHash,
+        },
+      },
+    }));
+  });
 
-    console.timeEnd("bulk insert case");
-  }
-  console.timeEnd("bulk insert full");
+  const receiptInserts = await prisma.$transaction(
+    processedTxnReceipt
+      .filter((receipt) => receipt !== undefined)
+      .map((receipt) =>
+        prisma.receipt.create({
+          data: receipt,
+        })
+      )
+  );
+
+  console.timeEnd("bulk insert");
 };
 
-writePermTestBulkInsert().catch((err) => console.error(err));
+writeToDbTestBulk().catch((err) => console.error(err));

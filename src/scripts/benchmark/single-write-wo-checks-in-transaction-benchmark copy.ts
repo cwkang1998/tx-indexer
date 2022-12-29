@@ -1,6 +1,5 @@
 import { faker } from "@faker-js/faker";
 import { PrismaClient } from "@prisma/client";
-import { createTransaction } from "../services/create-txn";
 
 const prisma = new PrismaClient({
   log: [
@@ -53,7 +52,7 @@ const generateFakeTxns = (blockNo: number, txAmount: number) => {
           : [];
 
       const txn: any = {
-        receipts,
+        receipts: { create: receipts },
         txTypeId: chosenTxType === "INVOKE" ? 0 : 1,
         txHash: faker.datatype.hexadecimal({ prefix: "0x", length: 64 }),
         blockNumber: blockNo,
@@ -67,15 +66,29 @@ const generateFakeTxns = (blockNo: number, txAmount: number) => {
   return result;
 };
 
-const writeToDb = async () => {
-  for (let i = 1; i < 100; i++) {
-    const txToInsert = generateFakeTxns(i, 100);
-    for (let j = 0; j < 100; j++) {
-      console.time("insert block");
-      await createTransaction(prisma, txToInsert[j]);
-      console.timeEnd("insert block");
-    }
-  }
+const writeToDbTestSingleWoCheckSingleTxn = async () => {
+  console.time("bulk insert");
+  const txToInsert = Array(10)
+    .fill(0)
+    .flatMap((_val, idx) => generateFakeTxns(idx, 100));
+  // for (let i = 0; i < 100; i++) {
+  // const txToInsert = generateFakeTxns(i, 100);
+
+  const result = await prisma.$transaction(
+    async (ctx) => {
+      const insertion = txToInsert.map((txn) => {
+        return ctx.transaction.create({
+          data: txn,
+          include: { receipts: true },
+        });
+      });
+      return await Promise.all(insertion);
+    },
+    { timeout: 180000 }
+  );
+
+  // }
+  console.timeEnd("bulk insert");
 };
 
-writeToDb().catch((err) => console.error(err));
+writeToDbTestSingleWoCheckSingleTxn().catch((err) => console.error(err));
