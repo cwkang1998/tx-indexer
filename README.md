@@ -32,11 +32,42 @@ npm start
 
 ## Design
 
+### Schema design
+
+The full schema can be seen in [prisma/schema.prisma](./prisma/schema.prisma).
+
 Below is a simple ERD that describe the database schema.
 
 ![ERDOverview](./prisma/ERD.svg)
 
 `Transaction` table `txHash` are explicitly indexed in order to improve query speed.
+
+### Considerations
+
+#### Implicit constriants
+
+There are some implicit constraints that was considered when designing the indexing endpoint, regarding the nature of the transactions. Currently I've only accounted for the general cases of:
+
+- Strictly sequencial block and transactions starting from 0
+- Gapless-ness of txIds and blockNumbers
+
+One thing that was **not** implemented was the ability to rollback when the need arises, for example in re-orgs or forks.
+
+#### Subject for querying
+
+Depending on what fields should be queried, the schema should be modified accordingly. In this implementation only `Transaction.txHash` is explicitly indexed for quick querying of a specific transaction, other that the identity fields which is implicitly indexed by the db as well, since only paging and filtering via `txType` is considered.
+
+`txType` is not indexed as its essentially an enum, and indexing it would not be very effective. However instead of storing it as `string`, its stored as an `integer` relation at least on the `Transaction` side, which should its performance, although with modern query engines, I'm not sure how much is the difference.
+
+Ideally `from` and `to` fields should be indexed as well, if filtering with those fields are considered.
+
+#### Normalization levels
+
+The amount of normalization is always an important point for consideration during schema design.
+
+In this case, I did not normalize the `from` and `to` fields as there were no filtering operations on them in the instructions provided, but one might consider normalizing those fields into perhaps an `Address` table if there are a lot of querying required and extra address based information other than transactions.
+
+The normalization of the `TransactionType` enums of `L1_HANDLER` and `INVOKE` into its own table is done to with the idea of reducing redundancy and more efficient querying with integer in its id rather than a full string (requiring a string match).
 
 ## Benchmarking
 
