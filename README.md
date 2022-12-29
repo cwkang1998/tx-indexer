@@ -15,7 +15,7 @@ The `-d` flag runs the docker image as a daemon in the background.
 With the database up, you would need to first do a migration to apply the schema to the database, which can be done via:
 
 ```bash
-npm run db:migraet
+npm run db:migrate
 ```
 
 With this schema, there's also a need to pre-seed the txType, which can be done via:
@@ -38,17 +38,17 @@ The full schema can be seen in [schema.prisma](./prisma/schema.prisma).
 
 Below is a simple ERD that describe the database schema.
 
-![ERDOverview](./prisma/ERD.svg)
+<img src="./prisma/ERD.svg" width="250">
 
 `Transaction` table `txHash` are explicitly indexed in order to improve query speed.
 
 ### Considerations
 
-#### Implicit constriants
+#### Implicit constraints
 
 There are some implicit constraints that was considered when designing the indexing endpoint, regarding the nature of the transactions. Currently I've only accounted for the general cases of:
 
-- Strictly sequencial block and transactions starting from 0
+- Strictly sequential block and transactions starting from 0
 - Gapless-ness of txIds and blockNumbers
 
 One thing that was **not** implemented was the ability to rollback when the need arises, for example in re-orgs or forks.
